@@ -3,90 +3,57 @@ import { ADVISOR_PACKAGES, IMAGES, INITIAL_ANSWERS } from "../data/siteData";
 import { scoreAdvisorPackage } from "../utils/advisor";
 import OptionButton from "../components/OptionButton";
 import AdvisorResultCard from "../components/AdvisorResultCard";
+import { useNavigate } from "react-router-dom";
 
-const STEPS = [
-  {
-    key: "homeSize",
-    title: "Hoe groot is je woning?",
-    description:
-      "Zo schatten we beter in hoeveel wifi-power je thuis nodig hebt.",
-    isComplete: (answers) => Boolean(answers.homeSize),
-  },
-  {
-    key: "internetUse",
-    title: "Hoe gebruik je internet?",
-    description:
-      "Van rustig scrollen tot voluit streamen, gamen en thuiswerken.",
-    isComplete: (answers) => Boolean(answers.internetUse),
-  },
-  {
-    key: "tvInterests",
-    title: "Waar wordt thuis graag naar gekeken?",
-    description: "Kies alles wat van toepassing is. Wij doen niet moeilijk.",
-    isComplete: (answers) => answers.tvInterests.length > 0,
-  },
-  {
-    key: "replay",
-    title: "Wil je kunnen opnemen en/of terugkijken?",
-    description: "Voor sommigen heilig. Voor anderen totaal overbodig.",
-    isComplete: (answers) => Boolean(answers.replay),
-  },
-  {
-    key: "phoneType",
-    title: "Wat voor telefoon wil je?",
-    description: "Team iPhone of team Android? Hier mag je kleur bekennen.",
-    isComplete: (answers) => Boolean(answers.phoneType),
-  },
-  {
-    key: "phoneNeed",
-    title: "Wat moet je telefoon vooral goed kunnen?",
-    description:
-      "Kies gerust meerdere dingen. Jij bent niet in een hokje te vangen.",
-    isComplete: (answers) => answers.phoneNeed.length > 0,
-  },
-];
-
-function StepPill({ number, label, active, complete, onClick }) {
+function FilterSection({
+  title,
+  description,
+  children,
+  summary,
+  open,
+  onToggle,
+  compact = false,
+}) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-all ${
-        active
-          ? "border-blue-900 bg-blue-50 shadow-sm"
-          : complete
-          ? "border-emerald-200 bg-emerald-50"
-          : "border-slate-200 bg-white hover:border-slate-300"
-      }`}
-    >
-      <div
-        className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold ${
-          active
-            ? "bg-blue-900 text-white"
-            : complete
-            ? "bg-emerald-600 text-white"
-            : "bg-slate-100 text-slate-600"
-        }`}
+    <div className="rounded-[1.25rem] border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-start justify-between gap-4 p-4 text-left"
       >
-        {complete ? "✓" : number}
-      </div>
-      <span className="text-sm font-medium text-slate-700">{label}</span>
-    </button>
+        <div>
+          <h3 className={`${compact ? "text-base" : "text-lg"} font-bold`}>
+            {title}
+          </h3>
+          {description && (
+            <p className="text-sm text-slate-500 mt-1">{description}</p>
+          )}
+          {summary && (
+            <div className="mt-2 text-sm text-blue-900 font-medium">
+              Gekozen: {summary}
+            </div>
+          )}
+        </div>
+        <div className="text-slate-400 text-lg leading-none mt-1">
+          {open ? "−" : "+"}
+        </div>
+      </button>
+      {open && <div className="px-4 pb-4">{children}</div>}
+    </div>
   );
 }
 
 export default function Keuzehulp() {
-  const [answers, setAnswers] = useState(INITIAL_ANSWERS);
-  const [showResults, setShowResults] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
+  const navigate = useNavigate();
 
-  const setSingleAndAdvance = (field, value) => {
-    setAnswers((prev) => ({ ...prev, [field]: value }));
-    if (currentStep < STEPS.length - 1) {
-      setTimeout(() => {
-        setCurrentStep((prev) => Math.min(prev + 1, STEPS.length - 1));
-      }, 180);
-    }
+  const [answers, setAnswers] = useState(INITIAL_ANSWERS);
+  const [openSection, setOpenSection] = useState("home");
+
+  const setSingle = (field, value) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [field]: prev[field] === value ? "" : value,
+    }));
   };
 
   const toggleMulti = (field, value) => {
@@ -100,29 +67,34 @@ export default function Keuzehulp() {
 
   const resetAnswers = () => {
     setAnswers(INITIAL_ANSWERS);
-    setShowResults(false);
-    setCurrentStep(0);
+    setOpenSection("home");
   };
 
-  const recommendedPackages = useMemo(() => {
-    return ADVISOR_PACKAGES.map((pkg) => ({
+  const visiblePackages = useMemo(() => {
+    const scored = ADVISOR_PACKAGES.map((pkg) => ({
       ...pkg,
       score: scoreAdvisorPackage(pkg, answers),
-    }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 3);
-  }, [answers]);
+    })).sort((a, b) => b.score - a.score);
 
-  const completion = useMemo(() => {
-    const fields = [
-      Boolean(answers.homeSize),
-      Boolean(answers.internetUse),
-      answers.tvInterests.length > 0,
-      Boolean(answers.replay),
-      Boolean(answers.phoneType),
-      answers.phoneNeed.length > 0,
-    ];
-    return Math.round((fields.filter(Boolean).length / fields.length) * 100);
+    const hasActiveFilters =
+      Boolean(answers.homeSize) ||
+      Boolean(answers.internetUse) ||
+      Boolean(answers.replay) ||
+      Boolean(answers.phoneType) ||
+      answers.tvInterests.length > 0 ||
+      answers.phoneNeed.length > 0;
+
+    if (!hasActiveFilters) {
+      return scored;
+    }
+
+    const narrowed = scored.filter((pkg) => pkg.score > 0);
+
+    if (narrowed.length >= 3) {
+      return narrowed;
+    }
+
+    return scored.slice(0, 3);
   }, [answers]);
 
   const activeSummary = [
@@ -134,422 +106,301 @@ export default function Keuzehulp() {
     ...answers.phoneNeed,
   ].filter(Boolean);
 
-  const canGoNext = useMemo(() => {
-    return STEPS[currentStep].isComplete(answers);
-  }, [answers, currentStep]);
-
-  const completedSteps = useMemo(() => {
-    return STEPS.filter((step) => step.isComplete(answers)).length;
-  }, [answers]);
-
-  const nextStep = () => {
-    if (currentStep < STEPS.length - 1 && canGoNext) {
-      setCurrentStep((prev) => prev + 1);
-    }
-  };
-
-  const prevStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep((prev) => prev - 1);
-    }
-  };
-
   return (
     <main className="bg-slate-100 min-h-screen">
-      <style>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(16px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fade-in-up {
-          animation: fadeInUp 450ms ease-out;
-        }
-      `}</style>
-
-      <section className="max-w-[1200px] mx-auto px-6 py-10">
+      <section className="max-w-[1280px] mx-auto px-4 md:px-6 py-8 md:py-10">
         <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
-          <div className="px-8 py-6 border-b border-slate-200 flex items-start justify-between gap-4">
-            <div className="w-full">
-              <div className="relative rounded-2xl overflow-hidden mb-4 h-48">
-                <img
-                  src={IMAGES.setup}
-                  alt="Keuzehulp header"
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/10" />
-                <div className="absolute bottom-4 left-4 text-white">
-                  <h1 className="text-3xl font-bold mt-1">Onze Keuzehulp</h1>
-                  <div className="text-xl font-semibold">
-                    Vind jouw perfecte pakket
-                  </div>
-                </div>
-              </div>
-              <p className="text-slate-600 mt-3 text-sm leading-6">
-                Beantwoord een paar korte vragen en wij toveren 3 pakketten voor
-                je tevoorschijn. Geen keuzestress, wel een beetje magie ✨
-              </p>
-            </div>
-          </div>
-
-          <div className="px-8 pt-6">
-            <div className="flex items-center justify-between gap-4 mb-3 text-sm">
-              <span className="text-slate-500">Voortgang keuzehulp</span>
-              <span className="font-medium text-slate-700">
-                {completion}% ingevuld · {completedSteps}/{STEPS.length} stappen
-              </span>
-            </div>
-            <div className="h-3 rounded-full bg-slate-100 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-blue-900 transition-all"
-                style={{ width: `${completion}%` }}
+          <div className="px-5 md:px-8 py-6 border-b border-slate-200">
+            <div className="relative rounded-2xl overflow-hidden h-40 md:h-52 mb-4">
+              <img
+                src={IMAGES.setup}
+                alt="Keuzehulp header"
+                className="absolute inset-0 w-full h-full object-cover"
               />
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2 pb-2">
-              {activeSummary.length > 0 ? (
-                activeSummary.map((item) => (
-                  <span
-                    key={item}
-                    className="rounded-full bg-slate-100 text-slate-700 px-3 py-1 text-sm"
-                  >
-                    {item}
-                  </span>
-                ))
-              ) : (
-                <span className="text-sm text-slate-500">
-                  Nog niets gekozen — wij zijn er klaar voor.
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div className="p-8 grid gap-10">
-            <div className="space-y-8">
-              <div>
-                <div className="rounded-[2rem] border border-slate-200 bg-slate-50 p-6 min-h-[360px] animate-fade-in-up">
-                  {currentStep === 0 && (
-                    <div>
-                      <div className="text-sm uppercase tracking-wide text-slate-500 mb-2">
-                        Stap 1
-                      </div>
-                      <h3 className="text-2xl font-bold mb-2">
-                        Hoe groot is je woning?
-                      </h3>
-                      <p className="text-slate-600 mb-6">
-                        Zo schatten we beter in hoeveel wifi-power je thuis
-                        nodig hebt.
-                      </p>
-                      <div className="grid md:grid-cols-3 gap-4">
-                        <OptionButton
-                          label="Kleiner dan 70 m²"
-                          selected={answers.homeSize === "klein"}
-                          onClick={() =>
-                            setSingleAndAdvance("homeSize", "klein")
-                          }
-                        />
-                        <OptionButton
-                          label="70 - 120 m²"
-                          selected={answers.homeSize === "middel"}
-                          onClick={() =>
-                            setSingleAndAdvance("homeSize", "middel")
-                          }
-                        />
-                        <OptionButton
-                          label="Groter dan 120 m²"
-                          selected={answers.homeSize === "groot"}
-                          onClick={() =>
-                            setSingleAndAdvance("homeSize", "groot")
-                          }
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {currentStep === 1 && (
-                    <div>
-                      <div className="text-sm uppercase tracking-wide text-slate-500 mb-2">
-                        Stap 2
-                      </div>
-                      <h3 className="text-2xl font-bold mb-2">
-                        Hoe gebruik je internet?
-                      </h3>
-                      <p className="text-slate-600 mb-6">
-                        Van rustig scrollen tot voluit streamen, gamen en
-                        thuiswerken.
-                      </p>
-                      <div className="grid md:grid-cols-3 gap-4">
-                        <OptionButton
-                          label="Licht gebruik"
-                          selected={answers.internetUse === "licht"}
-                          onClick={() =>
-                            setSingleAndAdvance("internetUse", "licht")
-                          }
-                        />
-                        <OptionButton
-                          label="Gemiddeld gebruik"
-                          selected={answers.internetUse === "gemiddeld"}
-                          onClick={() =>
-                            setSingleAndAdvance("internetUse", "gemiddeld")
-                          }
-                        />
-                        <OptionButton
-                          label="Intensief gebruik"
-                          selected={answers.internetUse === "intensief"}
-                          onClick={() =>
-                            setSingleAndAdvance("internetUse", "intensief")
-                          }
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {currentStep === 2 && (
-                    <div>
-                      <div className="text-sm uppercase tracking-wide text-slate-500 mb-2">
-                        Stap 3
-                      </div>
-                      <h3 className="text-2xl font-bold mb-2">
-                        Waar wordt thuis graag naar gekeken?
-                      </h3>
-                      <p className="text-slate-600 mb-6">
-                        Kies alles wat van toepassing is. Wij doen niet
-                        moeilijk.
-                      </p>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <OptionButton
-                          type="multi"
-                          label="Standaard TV"
-                          selected={answers.tvInterests.includes("standaard")}
-                          onClick={() =>
-                            toggleMulti("tvInterests", "standaard")
-                          }
-                        />
-                        <OptionButton
-                          type="multi"
-                          label="Films & series"
-                          selected={answers.tvInterests.includes("films")}
-                          onClick={() => toggleMulti("tvInterests", "films")}
-                        />
-                        <OptionButton
-                          type="multi"
-                          label="Sport"
-                          selected={answers.tvInterests.includes("sport")}
-                          onClick={() => toggleMulti("tvInterests", "sport")}
-                        />
-                        <OptionButton
-                          type="multi"
-                          label="Kinderprogramma’s"
-                          selected={answers.tvInterests.includes("kids")}
-                          onClick={() => toggleMulti("tvInterests", "kids")}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {currentStep === 3 && (
-                    <div>
-                      <div className="text-sm uppercase tracking-wide text-slate-500 mb-2">
-                        Stap 4
-                      </div>
-                      <h3 className="text-2xl font-bold mb-2">
-                        Wil je kunnen opnemen en/of terugkijken?
-                      </h3>
-                      <p className="text-slate-600 mb-6">
-                        Voor sommigen heilig. Voor anderen totaal overbodig.
-                      </p>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <OptionButton
-                          label="Ja, graag"
-                          selected={answers.replay === "ja"}
-                          onClick={() => setSingleAndAdvance("replay", "ja")}
-                        />
-                        <OptionButton
-                          label="Nee, hoeft niet"
-                          selected={answers.replay === "nee"}
-                          onClick={() => setSingleAndAdvance("replay", "nee")}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {currentStep === 4 && (
-                    <div>
-                      <div className="text-sm uppercase tracking-wide text-slate-500 mb-2">
-                        Stap 5
-                      </div>
-                      <h3 className="text-2xl font-bold mb-2">
-                        Wat voor telefoon wil je?
-                      </h3>
-                      <p className="text-slate-600 mb-6">
-                        Team iPhone of team Android? Hier mag je kleur bekennen.
-                      </p>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <OptionButton
-                          type="multi"
-                          label="iPhone"
-                          selected={answers.phoneType === "Apple"}
-                          onClick={() =>
-                            setSingleAndAdvance(
-                              "phoneType",
-                              answers.phoneType === "Apple" ? "" : "Apple"
-                            )
-                          }
-                        />
-                        <OptionButton
-                          type="multi"
-                          label="Android"
-                          selected={answers.phoneType === "Android"}
-                          onClick={() =>
-                            setSingleAndAdvance(
-                              "phoneType",
-                              answers.phoneType === "Android" ? "" : "Android"
-                            )
-                          }
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {currentStep === 5 && (
-                    <div>
-                      <div className="text-sm uppercase tracking-wide text-slate-500 mb-2">
-                        Stap 6
-                      </div>
-                      <h3 className="text-2xl font-bold mb-2">
-                        Wat moet je telefoon vooral goed kunnen?
-                      </h3>
-                      <p className="text-slate-600 mb-6">
-                        Kies gerust meerdere dingen. Jij bent niet in een hokje
-                        te vangen.
-                      </p>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <OptionButton
-                          type="multi"
-                          label="Praktisch en goedkoop"
-                          selected={answers.phoneNeed.includes("goedkoop")}
-                          onClick={() => toggleMulti("phoneNeed", "goedkoop")}
-                        />
-                        <OptionButton
-                          type="multi"
-                          label="Beste camera"
-                          selected={answers.phoneNeed.includes("camera")}
-                          onClick={() => toggleMulti("phoneNeed", "camera")}
-                        />
-                        <OptionButton
-                          type="multi"
-                          label="Beste model"
-                          selected={answers.phoneNeed.includes("beste")}
-                          onClick={() => toggleMulti("phoneNeed", "beste")}
-                        />
-                        <OptionButton
-                          type="multi"
-                          label="Veel opslag voor mijn foto’s"
-                          selected={answers.phoneNeed.includes("opslag")}
-                          onClick={() => toggleMulti("phoneNeed", "opslag")}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between gap-4">
-                  <button
-                    type="button"
-                    onClick={prevStep}
-                    disabled={currentStep === 0}
-                    className={`px-4 py-2 rounded-xl border border-slate-300text-slate-700 text-sm font-semibold ${
-                      currentStep === 0
-                        ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                        : "bg-white border border-slate-300 text-slate-700 hover:bg-slate-50"
-                    }`}
-                  >
-                    Vorige stap
-                  </button>
-                  <button
-                    onClick={resetAnswers}
-                    className="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50"
-                  >
-                    Reset
-                  </button>
-                  {currentStep < STEPS.length - 1 ? (
-                    <button
-                      type="button"
-                      onClick={nextStep}
-                      disabled={!canGoNext}
-                      className={`px-4 py-2 rounded-xl border border-slate-300 text-slate-700 text-sm font-semibold ${
-                        canGoNext
-                          ? "bg-blue-900 text-white hover:bg-blue-800"
-                          : "bg-slate-200 text-slate-400 cursor-not-allowed"
-                      }`}
-                    >
-                      Volgende stap
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        setShowResults(true);
-                        setTimeout(() => {
-                          window.scrollTo({ top: 1180, behavior: "smooth" });
-                        }, 80);
-                      }}
-                      className="rounded-2xl bg-blue-900 text-white px-5 py-3 font-semibold hover:bg-blue-800"
-                    >
-                      Toon mijn matches
-                    </button>
-                  )}
+              <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/10" />
+              <div className="absolute bottom-4 left-4 text-white max-w-2xl">
+                <h1 className="text-2xl md:text-4xl font-bold">
+                  Onze keuzehulp
+                </h1>
+                <div className="text-base md:text-xl font-semibold mt-1">
+                  Filter slim en zie direct welke 3 pakketten het beste passen
                 </div>
               </div>
             </div>
+            <p className="text-slate-600 text-sm md:text-base leading-6 max-w-3xl">
+              Geen lange wizard meer. Kies links wat belangrijk is voor jouw
+              situatie en zie rechts realtime hoe jouw top 3 pakketten zich
+              aanpassen. Op mobiel staan de filters bovenaan en blijven de
+              resultaten direct zichtbaar eronder.
+            </p>
+          </div>
 
-            <div>
-              <div className="bg-slate-50 rounded-[2rem] border border-slate-200 p-5 sticky top-24">
-                {!showResults ? (
-                  <div className="mt-6 text-sm text-slate-500 text-center">
-                    Rond de wizard af en klik op{" "}
-                    <span className="font-semibold">"Toon mijn matches"</span>
-                  </div>
+          <div className="p-4 md:p-6 lg:p-8 grid lg:grid-cols-3 gap-6 lg:gap-8 items-start">
+            <div className="lg:col-span-1 space-y-4 lg:sticky lg:top-24">
+              <div className="rounded-[1.5rem] border border-blue-200 bg-blue-50 p-5">
+                <div className="text-sm uppercase tracking-wide text-blue-900 font-medium mb-2">
+                  Slim filteren
+                </div>
+                <h2 className="text-2xl font-bold">Jouw voorkeuren</h2>
+                <p className="text-slate-600 mt-2 text-sm leading-6">
+                  Pas je voorkeuren aan en zie rechts meteen welke pakketten
+                  overblijven.
+                </p>
+                <button
+                  onClick={resetAnswers}
+                  className="mt-4 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  Reset filters
+                </button>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {activeSummary.length > 0 ? (
+                  activeSummary.map((item) => (
+                    <span
+                      key={item}
+                      className="rounded-full bg-slate-100 text-slate-700 px-3 py-1 text-sm"
+                    >
+                      {item}
+                    </span>
+                  ))
                 ) : (
-                  <div className="grid gap-4 mt-6 animate-fade-in-up">
-                    <div className="relative rounded-2xl overflow-hidden mb-4 h-48">
-                      <img
-                        src={IMAGES.setupcomplete}
-                        alt="Keuzehulp header"
-                        className="absolute inset-0 w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/10" />
-                      <div className="absolute bottom-4 left-4 text-white">
-                        <h2 className="text-3xl font-bold mt-1">
-                          Jouw top 3 matches
-                        </h2>
-                      </div>
-                    </div>
-                    <p className="text-slate-600 mt-3 text-sm leading-6">
-                      We kijken naar wonen, internetgebruik, TV-wensen en jouw
-                      favoriete telefoonstijl. Daardoor kunnen we ook net wat
-                      diversere pakketten laten zien dan op de standaard
-                      overzichtspagina.
-                    </p>
-                    <div className="grid xl:grid-cols-3 gap-4 items-stretch">
-                      {recommendedPackages.map((pkg, index) => (
-                        <div
-                          key={pkg.id}
-                          className={
-                            index === 0
-                              ? "ring-2 ring-blue-900 rounded-[2rem] scale-[1.02] origin-center"
-                              : ""
-                          }
-                        >
-                          <AdvisorResultCard pkg={pkg} index={index} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <span className="text-sm text-slate-500">
+                    Nog geen filters gekozen.
+                  </span>
                 )}
+              </div>
+
+              <FilterSection
+                title="Woning"
+                description="Hoe groot is je woning?"
+                summary={answers.homeSize || "Nog niet gekozen"}
+                open={openSection === "home"}
+                onToggle={() =>
+                  setOpenSection(openSection === "home" ? "" : "home")
+                }
+              >
+                <div className="grid gap-3">
+                  <OptionButton
+                    label="Kleiner dan 70 m²"
+                    selected={answers.homeSize === "klein"}
+                    onClick={() => setSingle("homeSize", "klein")}
+                  />
+                  <OptionButton
+                    label="70 - 120 m²"
+                    selected={answers.homeSize === "middel"}
+                    onClick={() => setSingle("homeSize", "middel")}
+                  />
+                  <OptionButton
+                    label="Groter dan 120 m²"
+                    selected={answers.homeSize === "groot"}
+                    onClick={() => setSingle("homeSize", "groot")}
+                  />
+                </div>
+              </FilterSection>
+
+              <FilterSection
+                title="Internetgebruik"
+                description="Wat past het best bij jouw huishouden?"
+                summary={answers.internetUse || "Nog niet gekozen"}
+                open={openSection === "usage"}
+                onToggle={() =>
+                  setOpenSection(openSection === "usage" ? "" : "usage")
+                }
+              >
+                <div className="grid gap-3">
+                  <OptionButton
+                    label="Licht gebruik"
+                    selected={answers.internetUse === "licht"}
+                    onClick={() => setSingle("internetUse", "licht")}
+                  />
+                  <OptionButton
+                    label="Gemiddeld gebruik"
+                    selected={answers.internetUse === "gemiddeld"}
+                    onClick={() => setSingle("internetUse", "gemiddeld")}
+                  />
+                  <OptionButton
+                    label="Intensief gebruik"
+                    selected={answers.internetUse === "intensief"}
+                    onClick={() => setSingle("internetUse", "intensief")}
+                  />
+                </div>
+              </FilterSection>
+
+              <FilterSection
+                title="TV voorkeuren"
+                description="Kies alles wat voor jou belangrijk is"
+                summary={
+                  answers.tvInterests.length > 0
+                    ? answers.tvInterests.join(", ")
+                    : answers.replay === "ja"
+                    ? "Terugkijken / opnemen"
+                    : "Nog niet gekozen"
+                }
+                open={openSection === "tv"}
+                onToggle={() =>
+                  setOpenSection(openSection === "tv" ? "" : "tv")
+                }
+              >
+                <div className="grid gap-3">
+                  <OptionButton
+                    type="multi"
+                    label="Standaard TV"
+                    selected={answers.tvInterests.includes("standaard")}
+                    onClick={() => toggleMulti("tvInterests", "standaard")}
+                  />
+                  <OptionButton
+                    type="multi"
+                    label="Films & series"
+                    selected={answers.tvInterests.includes("films")}
+                    onClick={() => toggleMulti("tvInterests", "films")}
+                  />
+                  <OptionButton
+                    type="multi"
+                    label="Sport"
+                    selected={answers.tvInterests.includes("sport")}
+                    onClick={() => toggleMulti("tvInterests", "sport")}
+                  />
+                  <OptionButton
+                    type="multi"
+                    label="Kinderprogramma’s"
+                    selected={answers.tvInterests.includes("kids")}
+                    onClick={() => toggleMulti("tvInterests", "kids")}
+                  />
+                  <OptionButton
+                    label="Terugkijken / opnemen belangrijk"
+                    selected={answers.replay === "ja"}
+                    onClick={() =>
+                      setSingle("replay", answers.replay === "ja" ? "" : "ja")
+                    }
+                  />
+                </div>
+              </FilterSection>
+
+              <FilterSection
+                title="Telefoon"
+                description="Kies een merk of type waar je voorkeur naar uitgaat"
+                summary={answers.phoneType || "Nog niet gekozen"}
+                open={openSection === "phone"}
+                onToggle={() =>
+                  setOpenSection(openSection === "phone" ? "" : "phone")
+                }
+              >
+                <div className="grid gap-3">
+                  <OptionButton
+                    label="iPhone"
+                    selected={answers.phoneType === "Apple"}
+                    onClick={() => setSingle("phoneType", "Apple")}
+                  />
+                  <OptionButton
+                    label="Samsung"
+                    selected={answers.phoneType === "Android"}
+                    onClick={() => setSingle("phoneType", "Android")}
+                  />
+                  <OptionButton
+                    label="Google"
+                    selected={answers.phoneType === "Google"}
+                    onClick={() => setSingle("phoneType", "Google")}
+                  />
+                  <OptionButton
+                    label="Fairphone"
+                    selected={answers.phoneType === "Fairphone"}
+                    onClick={() => setSingle("phoneType", "Fairphone")}
+                  />
+                  <OptionButton
+                    label="Sim only"
+                    selected={answers.phoneType === "SimOnly"}
+                    onClick={() => setSingle("phoneType", "SimOnly")}
+                  />
+                </div>
+              </FilterSection>
+
+              <FilterSection
+                title="Wat moet je telefoon goed kunnen?"
+                description="Je kunt meerdere voorkeuren selecteren"
+                summary={
+                  answers.phoneNeed.length > 0
+                    ? answers.phoneNeed.join(", ")
+                    : "Nog niet gekozen"
+                }
+                open={openSection === "need"}
+                onToggle={() =>
+                  setOpenSection(openSection === "need" ? "" : "need")
+                }
+              >
+                <div className="grid gap-3">
+                  <OptionButton
+                    type="multi"
+                    label="Praktisch en goedkoop"
+                    selected={answers.phoneNeed.includes("goedkoop")}
+                    onClick={() => toggleMulti("phoneNeed", "goedkoop")}
+                  />
+                  <OptionButton
+                    type="multi"
+                    label="Beste camera"
+                    selected={answers.phoneNeed.includes("camera")}
+                    onClick={() => toggleMulti("phoneNeed", "camera")}
+                  />
+                  <OptionButton
+                    type="multi"
+                    label="Beste model"
+                    selected={answers.phoneNeed.includes("beste")}
+                    onClick={() => toggleMulti("phoneNeed", "beste")}
+                  />
+                  <OptionButton
+                    type="multi"
+                    label="Veel opslag voor mijn foto’s"
+                    selected={answers.phoneNeed.includes("opslag")}
+                    onClick={() => toggleMulti("phoneNeed", "opslag")}
+                  />
+                </div>
+              </FilterSection>
+            </div>
+
+            <div className="lg:col-span-2 space-y-5">
+              <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
+                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                  <div>
+                    <div className="text-sm text-slate-500">
+                      Realtime pakketadvies
+                    </div>
+                    <h2 className="text-2xl md:text-3xl font-bold mt-1">
+                      Jouw top 3 pakketten
+                    </h2>
+                    <p className="text-slate-600 mt-2 text-sm md:text-base leading-6 max-w-2xl">
+                      Bij binnenkomst zie je alle pakketten. Zodra je filters
+                      kiest, maken we de selectie steeds kleiner en relevanter.
+                      Als je heel specifiek filtert, zorgen we dat er altijd
+                      minimaal 3 sterke keuzes overblijven om te vergelijken.
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-white border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700">
+                    {visiblePackages.length} pakketten zichtbaar
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid xl:grid-cols-3 md:grid-cols-2 gap-4 items-stretch animate-fade-in-up">
+                {visiblePackages.map((pkg, index) => (
+                  <div
+                    key={pkg.id}
+                    className={
+                      index === 0
+                        ? "xl:scale-[1.02] origin-center ring-2 ring-blue-900 rounded-[2rem]"
+                        : ""
+                    }
+                  >
+                    <AdvisorResultCard
+                      pkg={pkg}
+                      index={index}
+                      onSelect={() =>
+                        navigate("/configurator", {
+                          state: { bundleId: pkg.id },
+                        })
+                      }
+                    />
+                  </div>
+                ))}
               </div>
             </div>
           </div>

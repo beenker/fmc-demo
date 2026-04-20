@@ -23,9 +23,6 @@ export default function Header() {
           <Link to="/" className="hover:text-slate-900">
             Home
           </Link>
-          <Link to="/pakketten" className="hover:text-slate-900">
-            Pakketten
-          </Link>
           <Link to="/keuzehulp" className="hover:text-slate-900">
             Keuzehulp
           </Link>

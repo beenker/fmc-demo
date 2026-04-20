@@ -4,7 +4,7 @@ import Home from './pages/Home';
 import Pakketten from './pages/Pakketten';
 import Keuzehulp from './pages/Keuzehulp';
 import Assistant from "./pages/Assistant";
-
+import Configurator from "./pages/Configurator";
 
 export default function App() {
   return (
@@ -16,6 +16,7 @@ export default function App() {
           <Route path="/pakketten" element={<Pakketten />} />
           <Route path="/keuzehulp" element={<Keuzehulp />} />
           <Route path="/assistant" element={<Assistant />} />
+          <Route path="/configurator" element={<Configurator />} />
         </Routes>
       </div>
     </BrowserRouter>
