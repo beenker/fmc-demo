@@ -10,7 +10,7 @@ import packageAndroidEasy from "../assets/android-easy.png";
 import packageAndroidComplete from "../assets/android-complete.png";
 import packageAndroidUltra from "../assets/android-ultra.png";
 import giftPS5 from "../assets/giftps5.png";
-import giftSwitch from "../assets/giftSwitch.png";
+import giftSwitch from "../assets/giftswitch.png";
 import heroPhone from "../assets/heroPhone.png";
 import logo from '../assets/One-Logo.png';
 
