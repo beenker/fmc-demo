@@ -1,9 +1,31 @@
 import { useNavigate } from "react-router-dom";
-import { BUNDLES, IMAGES } from "../data/siteData";
+import { ADVISOR_PACKAGES, BUNDLES, IMAGES } from "../data/siteData";
 import GiftCard from "../components/GiftCard";
+
+const CONFIGURATOR_BUNDLE_MAP = {
+  "essential-one": "smart-start",
+  "complete-one": "everyday-plus",
+  "ultimate-one": "creator-max",
+};
+
+function getConfiguratorBundle(bundleId) {
+  const advisorId = CONFIGURATOR_BUNDLE_MAP[bundleId];
+  return ADVISOR_PACKAGES.find((pkg) => pkg.id === advisorId) || ADVISOR_PACKAGES[0];
+}
 
 export default function Home() {
   const navigate = useNavigate();
+
+  const handleBundleClick = (bundleId) => {
+    const configuratorBundle = getConfiguratorBundle(bundleId);
+
+    navigate("/configurator", {
+      state: {
+        bundleId: configuratorBundle.id,
+        bundle: configuratorBundle,
+      },
+    });
+  };
 
   return (
     <main>
@@ -24,7 +46,6 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Keuzehulp info box */}
           <div className="bg-white text-slate-900 rounded-[2rem] p-6 shadow-xl border border-white/30">
             <div className="inline-flex rounded-full bg-blue-900 text-white px-3 py-1 text-xs font-medium mb-4">
               Hulp nodig?
@@ -42,7 +63,6 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Bundles onder hero */}
           <div className="lg:col-span-2 mt-10 grid lg:grid-cols-3 gap-6">
             {BUNDLES.map((bundle) => (
               <div
@@ -96,11 +116,7 @@ export default function Home() {
                   {bundle.priceWas} p/m
                 </div>
                 <button
-                  onClick={() =>
-                    navigate("/configurator", {
-                      state: { bundleId: bundle.id },
-                    })
-                  }
+                  onClick={() => handleBundleClick(bundle.id)}
                   className="mt-6 w-full rounded-2xl bg-slate-900 text-white px-5 py-3 font-semibold hover:bg-slate-800"
                 >
                   Kies {bundle.name}

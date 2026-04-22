@@ -26,6 +26,9 @@ export default function Header() {
           <Link to="/keuzehulp" className="hover:text-slate-900">
             Keuzehulp
           </Link>
+           <Link to="/keuzehulp-filter" className="hover:text-slate-900">
+            Filter
+          </Link>
           <Link to="/assistant" className="hover:text-slate-900">
             AI Assistant
           </Link>

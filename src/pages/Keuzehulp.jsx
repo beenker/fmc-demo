@@ -5,55 +5,140 @@ import OptionButton from "../components/OptionButton";
 import AdvisorResultCard from "../components/AdvisorResultCard";
 import { useNavigate } from "react-router-dom";
 
-function FilterSection({
-  title,
-  description,
-  children,
-  summary,
-  open,
-  onToggle,
-  compact = false,
-}) {
+const STEPS = [
+  {
+    key: "homeSize",
+    title: "Woning",
+    short: "Woning",
+    description: "Hoe groot is je woning?",
+    type: "single",
+    options: [
+      { label: "Kleiner dan 70 m²", value: "klein" },
+      { label: "70 - 120 m²", value: "middel" },
+      { label: "Groter dan 120 m²", value: "groot" },
+    ],
+  },
+  {
+    key: "internetUse",
+    title: "Internet",
+    short: "Internet",
+    description: "Wat past het best bij jouw huishouden?",
+    type: "single",
+    options: [
+      { label: "Licht gebruik", value: "licht" },
+      { label: "Gemiddeld gebruik", value: "gemiddeld" },
+      { label: "Intensief gebruik", value: "intensief" },
+    ],
+  },
+  {
+    key: "tvInterests",
+    title: "TV voorkeur",
+    short: "TV",
+    description: "Kies wat belangrijk is voor jou.",
+    type: "multi",
+    options: [
+      { label: "Standaard TV", value: "standaard" },
+      { label: "Films & series", value: "films" },
+      { label: "Sport", value: "sport" },
+      { label: "Kinderprogramma’s", value: "kids" },
+    ],
+  },
+  {
+    key: "replay",
+    title: "TV extra",
+    short: "TV extra",
+    description: "Is terugkijken of opnemen belangrijk?",
+    type: "single",
+    options: [
+      { label: "Ja, graag", value: "ja" },
+      { label: "Nee, niet nodig", value: "nee" },
+    ],
+  },
+  {
+    key: "phoneType",
+    title: "Mobiel",
+    short: "Mobiel",
+    description: "Welk merk of type past het best?",
+    type: "single",
+    options: [
+      { label: "iPhone", value: "Apple" },
+      { label: "Samsung", value: "Android" },
+      { label: "Google", value: "Google" },
+      { label: "Fairphone", value: "Fairphone" },
+      { label: "Sim only", value: "SimOnly" },
+    ],
+  },
+  {
+    key: "phoneNeed",
+    title: "Mobiele specs",
+    short: "Mobiele specs",
+    description: "Je kunt meerdere voorkeuren kiezen.",
+    type: "multi",
+    options: [
+      { label: "Praktisch en goedkoop", value: "goedkoop" },
+      { label: "Beste camera", value: "camera" },
+      { label: "Beste model", value: "beste" },
+      { label: "Veel opslag", value: "opslag" },
+    ],
+  },
+];
+
+function StepPill({ index, title, active, completed, onClick }) {
   return (
-    <div className="rounded-[1.25rem] border border-slate-200 bg-white shadow-sm overflow-hidden">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="w-full flex items-start justify-between gap-4 p-4 text-left"
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+        active
+          ? "border-slate-900 bg-slate-900 text-white"
+          : completed
+          ? "border-blue-200 bg-blue-50 text-blue-900"
+          : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+      }`}
+    >
+      <span
+        className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] ${
+          active ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+        }`}
       >
-        <div>
-          <h3 className={`${compact ? "text-base" : "text-lg"} font-bold`}>
-            {title}
-          </h3>
-          {description && (
-            <p className="text-sm text-slate-500 mt-1">{description}</p>
-          )}
-          {summary && (
-            <div className="mt-2 text-sm text-blue-900 font-medium">
-              Gekozen: {summary}
-            </div>
-          )}
-        </div>
-        <div className="text-slate-400 text-lg leading-none mt-1">
-          {open ? "−" : "+"}
-        </div>
-      </button>
-      {open && <div className="px-4 pb-4">{children}</div>}
-    </div>
+        {index + 1}
+      </span>
+      {title}
+    </button>
   );
+}
+
+function getStepSummary(step, answers) {
+  if (step.key === "tvInterests") {
+    return answers.tvInterests.length
+      ? answers.tvInterests.join(", ")
+      : "Nog niet gekozen";
+  }
+  if (step.key === "phoneNeed") {
+    return answers.phoneNeed.length
+      ? answers.phoneNeed.join(", ")
+      : "Nog niet gekozen";
+  }
+  return answers[step.key] || "Nog niet gekozen";
 }
 
 export default function Keuzehulp() {
   const navigate = useNavigate();
 
   const [answers, setAnswers] = useState(INITIAL_ANSWERS);
-  const [openSection, setOpenSection] = useState("home");
+  const [currentStep, setCurrentStep] = useState(0);
 
   const setSingle = (field, value) => {
     setAnswers((prev) => ({
       ...prev,
       [field]: prev[field] === value ? "" : value,
     }));
+
+    if (currentStep < STEPS.length - 1) {
+      setTimeout(() => {
+        setCurrentStep((prev) => Math.min(prev + 1, STEPS.length - 1));
+      }, 120);
+    }
   };
 
   const toggleMulti = (field, value) => {
@@ -67,7 +152,7 @@ export default function Keuzehulp() {
 
   const resetAnswers = () => {
     setAnswers(INITIAL_ANSWERS);
-    setOpenSection("home");
+    setCurrentStep(0);
   };
 
   const visiblePackages = useMemo(() => {
@@ -84,18 +169,18 @@ export default function Keuzehulp() {
       answers.tvInterests.length > 0 ||
       answers.phoneNeed.length > 0;
 
-    if (!hasActiveFilters) {
-      return scored;
-    }
+    if (!hasActiveFilters) return scored;
 
     const narrowed = scored.filter((pkg) => pkg.score > 0);
-
-    if (narrowed.length >= 3) {
-      return narrowed;
-    }
-
+    if (narrowed.length >= 3) return narrowed;
     return scored.slice(0, 3);
   }, [answers]);
+
+  const activeStepConfig = STEPS[currentStep];
+  const completedSteps = STEPS.map((step) => {
+    if (Array.isArray(answers[step.key])) return answers[step.key].length > 0;
+    return Boolean(answers[step.key]);
+  });
 
   const activeSummary = [
     answers.homeSize && `Woning: ${answers.homeSize}`,
@@ -123,262 +208,150 @@ export default function Keuzehulp() {
                   Onze keuzehulp
                 </h1>
                 <div className="text-base md:text-xl font-semibold mt-1">
-                  Filter slim en zie direct welke 3 pakketten het beste passen
+                  Doorloop 6 korte stappen en zie direct hoe jouw beste
+                  pakketten meebewegen
                 </div>
               </div>
             </div>
             <p className="text-slate-600 text-sm md:text-base leading-6 max-w-3xl">
-              Geen lange wizard meer. Kies links wat belangrijk is voor jouw
-              situatie en zie rechts realtime hoe jouw top 3 pakketten zich
-              aanpassen. Op mobiel staan de filters bovenaan en blijven de
-              resultaten direct zichtbaar eronder.
+              Geen grote filterkolom meer. Je doorloopt hierboven een compacte
+              guided flow en na elke stap passen de pakketten hieronder zich
+              direct aan.
             </p>
           </div>
 
-          <div className="p-4 md:p-6 lg:p-8 grid lg:grid-cols-3 gap-6 lg:gap-8 items-start">
-            <div className="lg:col-span-1 space-y-4 lg:sticky lg:top-24">
-              <div className="rounded-[1.5rem] border border-blue-200 bg-blue-50 p-5">
-                <div className="text-sm uppercase tracking-wide text-blue-900 font-medium mb-2">
-                  Slim filteren
+          <div className="p-4 md:p-6 lg:p-8 space-y-6">
+            <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
+              <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold">
+                    Jouw keuzehulp in 6 stappen
+                  </h2>
+                  <p className="text-slate-600 mt-2 text-sm leading-6 max-w-3xl">
+                    Klik door de stappen boven de producten. Bij elke stap
+                    worden de resultaten direct opnieuw gerankt en versmald.
+                  </p>
                 </div>
-                <h2 className="text-2xl font-bold">Jouw voorkeuren</h2>
-                <p className="text-slate-600 mt-2 text-sm leading-6">
-                  Pas je voorkeuren aan en zie rechts meteen welke pakketten
-                  overblijven.
-                </p>
                 <button
                   onClick={resetAnswers}
-                  className="mt-4 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                 >
-                  Reset filters
+                  Reset keuzehulp
                 </button>
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                {activeSummary.length > 0 ? (
-                  activeSummary.map((item) => (
-                    <span
-                      key={item}
-                      className="rounded-full bg-slate-100 text-slate-700 px-3 py-1 text-sm"
-                    >
-                      {item}
-                    </span>
-                  ))
-                ) : (
-                  <span className="text-sm text-slate-500">
-                    Nog geen filters gekozen.
-                  </span>
-                )}
+              <div className="mt-5 flex flex-wrap gap-2">
+                {STEPS.map((step, index) => (
+                  <StepPill
+                    key={step.key}
+                    index={index}
+                    title={step.short}
+                    active={currentStep === index}
+                    completed={completedSteps[index]}
+                    onClick={() => setCurrentStep(index)}
+                  />
+                ))}
               </div>
 
-              <FilterSection
-                title="Woning"
-                description="Hoe groot is je woning?"
-                summary={answers.homeSize || "Nog niet gekozen"}
-                open={openSection === "home"}
-                onToggle={() =>
-                  setOpenSection(openSection === "home" ? "" : "home")
-                }
-              >
-                <div className="grid gap-3">
-                  <OptionButton
-                    label="Kleiner dan 70 m²"
-                    selected={answers.homeSize === "klein"}
-                    onClick={() => setSingle("homeSize", "klein")}
-                  />
-                  <OptionButton
-                    label="70 - 120 m²"
-                    selected={answers.homeSize === "middel"}
-                    onClick={() => setSingle("homeSize", "middel")}
-                  />
-                  <OptionButton
-                    label="Groter dan 120 m²"
-                    selected={answers.homeSize === "groot"}
-                    onClick={() => setSingle("homeSize", "groot")}
-                  />
-                </div>
-              </FilterSection>
-
-              <FilterSection
-                title="Internetgebruik"
-                description="Wat past het best bij jouw huishouden?"
-                summary={answers.internetUse || "Nog niet gekozen"}
-                open={openSection === "usage"}
-                onToggle={() =>
-                  setOpenSection(openSection === "usage" ? "" : "usage")
-                }
-              >
-                <div className="grid gap-3">
-                  <OptionButton
-                    label="Licht gebruik"
-                    selected={answers.internetUse === "licht"}
-                    onClick={() => setSingle("internetUse", "licht")}
-                  />
-                  <OptionButton
-                    label="Gemiddeld gebruik"
-                    selected={answers.internetUse === "gemiddeld"}
-                    onClick={() => setSingle("internetUse", "gemiddeld")}
-                  />
-                  <OptionButton
-                    label="Intensief gebruik"
-                    selected={answers.internetUse === "intensief"}
-                    onClick={() => setSingle("internetUse", "intensief")}
-                  />
-                </div>
-              </FilterSection>
-
-              <FilterSection
-                title="TV voorkeuren"
-                description="Kies alles wat voor jou belangrijk is"
-                summary={
-                  answers.tvInterests.length > 0
-                    ? answers.tvInterests.join(", ")
-                    : answers.replay === "ja"
-                    ? "Terugkijken / opnemen"
-                    : "Nog niet gekozen"
-                }
-                open={openSection === "tv"}
-                onToggle={() =>
-                  setOpenSection(openSection === "tv" ? "" : "tv")
-                }
-              >
-                <div className="grid gap-3">
-                  <OptionButton
-                    type="multi"
-                    label="Standaard TV"
-                    selected={answers.tvInterests.includes("standaard")}
-                    onClick={() => toggleMulti("tvInterests", "standaard")}
-                  />
-                  <OptionButton
-                    type="multi"
-                    label="Films & series"
-                    selected={answers.tvInterests.includes("films")}
-                    onClick={() => toggleMulti("tvInterests", "films")}
-                  />
-                  <OptionButton
-                    type="multi"
-                    label="Sport"
-                    selected={answers.tvInterests.includes("sport")}
-                    onClick={() => toggleMulti("tvInterests", "sport")}
-                  />
-                  <OptionButton
-                    type="multi"
-                    label="Kinderprogramma’s"
-                    selected={answers.tvInterests.includes("kids")}
-                    onClick={() => toggleMulti("tvInterests", "kids")}
-                  />
-                  <OptionButton
-                    label="Terugkijken / opnemen belangrijk"
-                    selected={answers.replay === "ja"}
-                    onClick={() =>
-                      setSingle("replay", answers.replay === "ja" ? "" : "ja")
-                    }
-                  />
-                </div>
-              </FilterSection>
-
-              <FilterSection
-                title="Telefoon"
-                description="Kies een merk of type waar je voorkeur naar uitgaat"
-                summary={answers.phoneType || "Nog niet gekozen"}
-                open={openSection === "phone"}
-                onToggle={() =>
-                  setOpenSection(openSection === "phone" ? "" : "phone")
-                }
-              >
-                <div className="grid gap-3">
-                  <OptionButton
-                    label="iPhone"
-                    selected={answers.phoneType === "Apple"}
-                    onClick={() => setSingle("phoneType", "Apple")}
-                  />
-                  <OptionButton
-                    label="Samsung"
-                    selected={answers.phoneType === "Android"}
-                    onClick={() => setSingle("phoneType", "Android")}
-                  />
-                  <OptionButton
-                    label="Google"
-                    selected={answers.phoneType === "Google"}
-                    onClick={() => setSingle("phoneType", "Google")}
-                  />
-                  <OptionButton
-                    label="Fairphone"
-                    selected={answers.phoneType === "Fairphone"}
-                    onClick={() => setSingle("phoneType", "Fairphone")}
-                  />
-                  <OptionButton
-                    label="Sim only"
-                    selected={answers.phoneType === "SimOnly"}
-                    onClick={() => setSingle("phoneType", "SimOnly")}
-                  />
-                </div>
-              </FilterSection>
-
-              <FilterSection
-                title="Wat moet je telefoon goed kunnen?"
-                description="Je kunt meerdere voorkeuren selecteren"
-                summary={
-                  answers.phoneNeed.length > 0
-                    ? answers.phoneNeed.join(", ")
-                    : "Nog niet gekozen"
-                }
-                open={openSection === "need"}
-                onToggle={() =>
-                  setOpenSection(openSection === "need" ? "" : "need")
-                }
-              >
-                <div className="grid gap-3">
-                  <OptionButton
-                    type="multi"
-                    label="Praktisch en goedkoop"
-                    selected={answers.phoneNeed.includes("goedkoop")}
-                    onClick={() => toggleMulti("phoneNeed", "goedkoop")}
-                  />
-                  <OptionButton
-                    type="multi"
-                    label="Beste camera"
-                    selected={answers.phoneNeed.includes("camera")}
-                    onClick={() => toggleMulti("phoneNeed", "camera")}
-                  />
-                  <OptionButton
-                    type="multi"
-                    label="Beste model"
-                    selected={answers.phoneNeed.includes("beste")}
-                    onClick={() => toggleMulti("phoneNeed", "beste")}
-                  />
-                  <OptionButton
-                    type="multi"
-                    label="Veel opslag voor mijn foto’s"
-                    selected={answers.phoneNeed.includes("opslag")}
-                    onClick={() => toggleMulti("phoneNeed", "opslag")}
-                  />
-                </div>
-              </FilterSection>
-            </div>
-
-            <div className="lg:col-span-2 space-y-5">
-              <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
-                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+              <div className="mt-5 rounded-[1.25rem] border border-slate-200 bg-white p-4 md:p-5">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                   <div>
                     <div className="text-sm text-slate-500">
-                      Realtime pakketadvies
+                      Stap {currentStep + 1} van {STEPS.length}
                     </div>
-                    <h2 className="text-2xl md:text-3xl font-bold mt-1">
-                      Jouw top 3 pakketten
-                    </h2>
-                    <p className="text-slate-600 mt-2 text-sm md:text-base leading-6 max-w-2xl">
-                      Bij binnenkomst zie je alle pakketten. Zodra je filters
-                      kiest, maken we de selectie steeds kleiner en relevanter.
-                      Als je heel specifiek filtert, zorgen we dat er altijd
-                      minimaal 3 sterke keuzes overblijven om te vergelijken.
+                    <h3 className="text-xl font-bold mt-1">
+                      {activeStepConfig.title}
+                    </h3>
+                    <p className="text-slate-600 mt-2 text-sm leading-6">
+                      {activeStepConfig.description}
                     </p>
                   </div>
-                  <div className="rounded-full bg-white border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700">
-                    {visiblePackages.length} pakketten zichtbaar
-                  </div>
+
+                  {currentStep < STEPS.length - 1 && (
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setCurrentStep((prev) => Math.max(prev - 1, 0))
+                        }
+                        disabled={currentStep === 0}
+                        className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 disabled:opacity-40"
+                      >
+                        Vorige
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setCurrentStep((prev) =>
+                            Math.min(prev + 1, STEPS.length - 1)
+                          )
+                        }
+                        className="rounded-xl bg-slate-900 text-white px-4 py-2 text-sm font-medium"
+                      >
+                        Volgende
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4 grid md:grid-cols-2 xl:grid-cols-3 gap-2.5">
+                  {activeStepConfig.options.map((option) => {
+                    const selected =
+                      activeStepConfig.type === "multi"
+                        ? answers[activeStepConfig.key].includes(option.value)
+                        : answers[activeStepConfig.key] === option.value;
+
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => {
+                          if (activeStepConfig.type === "multi") {
+                            toggleMulti(activeStepConfig.key, option.value);
+                          } else {
+                            setSingle(activeStepConfig.key, option.value);
+                          }
+                        }}
+                        className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
+                          selected
+                            ? "border-blue-900 bg-blue-50 text-blue-950"
+                            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                        }`}
+                      >
+                        <div className="font-medium leading-5">
+                          {option.label}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <div className="flex-1">
+                  {activeSummary.length > 0 ? (
+                    activeSummary.map((item) => (
+                      <span
+                        key={item}
+                        className="rounded-full bg-slate-100 text-slate-700 px-3 py-1 text-sm"
+                      >
+                        {item}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-sm text-slate-500">
+                      Nog geen voorkeuren gekozen.
+                    </span>
+                  )}
+                </div>
+
+                <div className="md:self-end rounded-full bg-white border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700">
+                  {visiblePackages.length} pakketten zichtbaar
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-5">
 
               <div className="grid xl:grid-cols-3 md:grid-cols-2 gap-4 items-stretch animate-fade-in-up">
                 {visiblePackages.map((pkg, index) => (
