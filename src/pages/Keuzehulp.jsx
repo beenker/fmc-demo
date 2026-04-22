@@ -108,20 +108,6 @@ function StepPill({ index, title, active, completed, onClick }) {
   );
 }
 
-function getStepSummary(step, answers) {
-  if (step.key === "tvInterests") {
-    return answers.tvInterests.length
-      ? answers.tvInterests.join(", ")
-      : "Nog niet gekozen";
-  }
-  if (step.key === "phoneNeed") {
-    return answers.phoneNeed.length
-      ? answers.phoneNeed.join(", ")
-      : "Nog niet gekozen";
-  }
-  return answers[step.key] || "Nog niet gekozen";
-}
-
 export default function Keuzehulp() {
   const navigate = useNavigate();
 
