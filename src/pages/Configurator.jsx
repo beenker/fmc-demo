@@ -893,7 +893,7 @@ function ConfiguratorContent({ selectedBundle }) {
 
               {/* UNIFIED DESKTOP SIDEBAR */}
               <aside className="hidden xl:block">
-                {addressScenario?.status !== "unsupported" && (
+                {addressScenario && addressScenario.status !== "unsupported" && (
                   <div className="sticky top-8 flex flex-col max-h-[calc(100vh-4rem)]">
                     <div className="w-full bg-slate-50 rounded-[2rem] border border-slate-200 shadow-xl flex flex-col overflow-hidden">
                       {/* Scrollable Body */}
@@ -995,8 +995,8 @@ function ConfiguratorContent({ selectedBundle }) {
                 )}
               </aside>
 
-              {/* MOBILE STICKY BAR */}
-              {addressScenario?.status !== "unsupported" && (
+              {/* MOBILE STICKY BAR - Fixed condition to require address check */}
+              {addressScenario && addressScenario.status !== "unsupported" && (
                 <div className="xl:hidden fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 backdrop-blur-xl shadow-[0_-15px_50px_rgba(0,0,0,0.15)] pb-safe transition-all duration-300">
                   <div className="max-w-md mx-auto px-6 py-5 flex items-center justify-between gap-6">
                     <div className="min-w-0">
