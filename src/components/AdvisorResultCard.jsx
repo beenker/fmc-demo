@@ -1,3 +1,5 @@
+import { PackageFeatureList } from "./BrandServiceRows";
+
 export default function AdvisorResultCard({ pkg, index, onSelect }) {
   return (
     <div
@@ -22,12 +24,13 @@ export default function AdvisorResultCard({ pkg, index, onSelect }) {
       <h3 className="text-2xl font-bold">{pkg.name}</h3>
       <p className="text-slate-500 mt-2">{pkg.vibe}</p>
 
-      <ul className="mt-5 space-y-2 text-sm text-slate-700">
-        <li>📶 {pkg.internet}</li>
-        <li>📺 {pkg.tv}</li>
-        <li>📱 {pkg.phone}</li>
-        <li>📦 {pkg.mobile}</li>
-      </ul>
+      <PackageFeatureList
+        className="mt-5"
+        internet={pkg.internet}
+        tv={pkg.tv}
+        mobile={pkg.mobile}
+        device={pkg.phone}
+      />
 
       <div className="mt-6">
         <div className="text-3xl font-bold">{pkg.priceNow}</div>

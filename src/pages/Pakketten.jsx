@@ -73,8 +73,8 @@ export default function Pakketten() {
           <p className="mt-4 text-slate-600">Ruil je korting in voor iets tastbaars.</p>
 
           <div className="grid md:grid-cols-2 gap-6 mt-10">
-            <GiftCard image={IMAGES.ps5} title="PlayStation 5" value="t.w.v. €549" />
-            <GiftCard image={IMAGES.switch} title="Nintendo Switch" value="t.w.v. €329" />
+            <GiftCard offerKind="gift" image={IMAGES.ps5} title="PlayStation 5" value="t.w.v. €549" />
+            <GiftCard offerKind="gift" image={IMAGES.switch} title="Nintendo Switch" value="t.w.v. €329" />
           </div>
         </div>
       </section>

@@ -2,6 +2,7 @@ import { useMemo, useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   ADVISOR_PACKAGES,
+  BRAND_ASSETS,
   CONFIGURATOR_OPTIONS,
   DEVICE_VARIANTS,
 } from "../data/siteData";
@@ -14,6 +15,11 @@ import {
   parsePrice,
   resolveBundleId,
 } from "../utils/configuratorUtils";
+import {
+  BrandMarkImg,
+  LineCategoryImg,
+  SidebarOfferImg,
+} from "../components/BrandServiceRows";
 
 const {
   chargerPrice: CHARGER_PRICE,
@@ -34,6 +40,11 @@ const CONFIGURATOR_BUNDLE_MAP = {
 };
 
 function GiftCard({ gift, selected, onSelect, disabled = false }) {
+  const badgeSrc =
+    gift.type === "discount"
+      ? BRAND_ASSETS.discountIcon
+      : BRAND_ASSETS.giftboxIcon;
+
   return (
     <button
       type="button"
@@ -52,8 +63,20 @@ function GiftCard({ gift, selected, onSelect, disabled = false }) {
           className="h-full w-full object-cover"
         />
       </div>
-      <div className="font-bold text-lg">{gift.title}</div>
-      <div className="text-sm text-slate-500 mt-1">{gift.subtitle}</div>
+      <div className="flex items-start gap-3">
+        <img
+          src={badgeSrc}
+          alt=""
+          className="mt-0.5 h-9 w-9 shrink-0 object-contain"
+          width={36}
+          height={36}
+          aria-hidden
+        />
+        <div className="min-w-0 flex-1">
+          <div className="font-bold text-lg leading-snug">{gift.title}</div>
+          <div className="text-sm text-slate-500 mt-1">{gift.subtitle}</div>
+        </div>
+      </div>
     </button>
   );
 }
@@ -657,8 +680,12 @@ function ConfiguratorContent({ selectedBundle }) {
                   Stel jouw deal samen
                 </h1>
                 <p className="mt-4 text-orange-100 text-base md:text-lg leading-7">
-                  Pas je pakket aan waar jij wilt. Het overzicht rechts rekent
-                  direct mee terwijl jij je ideale deal samenstelt.
+                  One combineert in deze campagne{" "}
+                  <strong className="font-semibold text-white">Ziggo</strong>{" "}
+                  (internet &amp; TV) en{" "}
+                  <strong className="font-semibold text-white">Vodafone</strong>{" "}
+                  (mobiel &amp; toestel) voor maximaal voordeel. Pas je pakket
+                  aan; het overzicht rechts rekent direct mee.
                 </p>
               </div>
             </div>
@@ -684,28 +711,28 @@ function ConfiguratorContent({ selectedBundle }) {
 
                       <div className="mt-8 grid md:grid-cols-2 gap-5">
                         <SelectionField
-                          label="Internet"
+                          label="Internet (Ziggo)"
                           value={internetOption.label}
                           price={internetOption.price}
                           options={availableInternetOptions}
                           onChange={handlePackageChange(setSelectedInternet)}
                         />
                         <SelectionField
-                          label="TV-pakket"
+                          label="TV (Ziggo)"
                           value={tvOption.value}
                           price={tvOption.price}
                           options={availableTvOptions}
                           onChange={handlePackageChange(setSelectedTv)}
                         />
                         <SelectionField
-                          label="Mobiel abonnement"
+                          label="Mobiel (Vodafone)"
                           value={mobileOption.value}
                           price={mobileOption.price}
                           options={availableMobileOptions}
                           onChange={handlePackageChange(setSelectedMobile)}
                         />
                         <SelectionField
-                          label="Telefoon"
+                          label="Telefoon (Vodafone)"
                           value={selectedPhoneOption.value}
                           price={0}
                           options={availablePhoneOptions}
@@ -911,28 +938,50 @@ function ConfiguratorContent({ selectedBundle }) {
 
                         <div className="mt-8 space-y-4">
                           <div className="flex items-center justify-between gap-4">
-                            <span className="text-slate-600 text-sm flex items-center gap-2 truncate">
-                              <span className="shrink-0">🛜</span> {internetOption.label}
+                            <span className="text-slate-600 text-sm flex items-center gap-2 min-w-0 truncate">
+                              <LineCategoryImg kind="internet" />
+                              <span className="flex min-w-0 items-center gap-1.5 truncate">
+                                <BrandMarkImg brand="ziggo" />
+                                <span className="truncate">{internetOption.label}</span>
+                              </span>
                             </span>
                             <span className="font-bold text-slate-900 text-sm whitespace-nowrap">{formatEuro(internetOption.price)}</span>
                           </div>
                           <div className="flex items-center justify-between gap-4">
-                            <span className="text-slate-600 text-sm flex items-center gap-2 truncate">
-                              <span className="shrink-0">📺</span> {tvOption.value}
+                            <span className="text-slate-600 text-sm flex items-center gap-2 min-w-0 truncate">
+                              <LineCategoryImg kind="tv" />
+                              <span className="flex min-w-0 items-center gap-1.5 truncate">
+                                <BrandMarkImg brand="ziggo" />
+                                <span className="truncate">{tvOption.value}</span>
+                              </span>
                             </span>
                             <span className="font-bold text-slate-900 text-sm whitespace-nowrap">
                               {tvOption.price > 0 ? formatEuro(tvOption.price) : "Inclusief"}
                             </span>
                           </div>
                           <div className="flex items-center justify-between gap-4">
-                            <span className="text-slate-600 text-sm flex items-center gap-2 truncate">
-                              <span className="shrink-0">📶</span> {mobileOption.value}
+                            <span className="text-slate-600 text-sm flex items-center gap-2 min-w-0 truncate">
+                              <LineCategoryImg kind="mobile" />
+                              <span className="flex min-w-0 items-center gap-1.5 truncate">
+                                <BrandMarkImg brand="vodafone" />
+                                <span className="truncate">{mobileOption.value}</span>
+                              </span>
                             </span>
                             <span className="font-bold text-slate-900 text-sm whitespace-nowrap">{formatEuro(mobileOption.price)}</span>
                           </div>
                           <div className="flex items-center justify-between gap-4 pt-2 border-t border-slate-200/60">
-                            <span className="text-slate-600 text-sm flex items-center gap-2 truncate">
-                              <span className="shrink-0">📱</span> {selectedPhoneOption.value}
+                            <span className="text-slate-600 text-sm flex items-center gap-2 min-w-0 truncate">
+                              {/sim\s*only|^sim$/i.test(
+                                String(selectedPhoneOption.value || "").trim()
+                              ) ? (
+                                <LineCategoryImg kind="sim" />
+                              ) : (
+                                <LineCategoryImg kind="phone" />
+                              )}
+                              <span className="flex min-w-0 items-center gap-1.5 truncate">
+                                <BrandMarkImg brand="vodafone" />
+                                <span className="truncate">{selectedPhoneOption.value}</span>
+                              </span>
                             </span>
                             <span className="font-bold text-slate-900 text-sm whitespace-nowrap">
                               {isSimOnly ? "Inclusief" : formatEuro(oneTimePayment)}
@@ -949,13 +998,15 @@ function ConfiguratorContent({ selectedBundle }) {
                             {effectiveSelectedGift === "discount" ? (
                               <>
                                 <span className="text-xs font-bold flex items-center gap-2 truncate">
-                                  <span className="text-base">🎁</span> 50% korting (12m)
+                                  <SidebarOfferImg variant="discount" />
+                                  50% korting (12 mnd)
                                 </span>
                                 <span className="font-black whitespace-nowrap">− {formatEuro(discountAmount)}</span>
                               </>
                             ) : (
                               <span className="text-xs font-bold flex items-center gap-2 truncate">
-                                <span className="text-base">🎁</span> {GIFTS.find((g) => g.id === effectiveSelectedGift)?.title}
+                                <SidebarOfferImg variant="gift" />
+                                {GIFTS.find((g) => g.id === effectiveSelectedGift)?.title}
                               </span>
                             )}
                           </div>
@@ -1016,7 +1067,7 @@ function ConfiguratorContent({ selectedBundle }) {
                       disabled={!addressScenario || addressScenario.status === "unsupported"}
                       className="rounded-[1.25rem] bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 font-black text-base shadow-lg shadow-orange-200 transition-all active:scale-95 disabled:bg-slate-200 disabled:text-slate-400"
                     >
-                      Checkout
+                      Afrekenen
                     </button>
                   </div>
                 </div>

@@ -14,6 +14,32 @@ import giftSwitch from "../assets/giftswitch.png";
 import giftDiscount from "../assets/giftdiscount.png";
 import heroPhone from "../assets/heroPhone.png";
 import logo from "../assets/One-Logo.png";
+import vodafoneLogo from "../assets/Vodafone-logo.png";
+import ziggoLogo from "../assets/Ziggo-logo.svg";
+import vodafoneIcon from "../assets/vodafone-icon.svg";
+import ziggoIcon from "../assets/ziggo-icon.png";
+import internetIcon from "../assets/internet-icon.svg";
+import tvIcon from "../assets/tv-icon.svg";
+import mobileIcon from "../assets/Mobile.-icon.png";
+import phoneIcon from "../assets/phone-icon.svg";
+import simcardIcon from "../assets/Simcard-icon.png";
+import giftboxIcon from "../assets/Giftbox-icon.png";
+import discountIcon from "../assets/Discount-icon.png";
+
+/** Vodafone/Ziggo logos, service-lijst iconen en korting/cadeau-badges (PNG/SVG). */
+export const BRAND_ASSETS = {
+  vodafoneLogo,
+  ziggoLogo,
+  vodafoneIcon,
+  ziggoIcon,
+  internetIcon,
+  tvIcon,
+  mobileIcon,
+  phoneIcon,
+  simcardIcon,
+  giftboxIcon,
+  discountIcon,
+};
 
 export const IMAGES = {
   oneLogo: logo,
@@ -34,7 +60,7 @@ export const BUNDLES = [
     id: "essential-one",
     name: "Essential One",
     subtitle: "Voor een frisse start",
-    internet: "Wifi Start · 100 Mbit/s",
+    internet: "Wi-Fi Start · 100 Mbit/s",
     tv: "TV Start",
     mobile: "3GB",
     device: "iPhone 17e / Galaxy A",
@@ -46,7 +72,7 @@ export const BUNDLES = [
     id: "complete-one",
     name: "Complete One",
     subtitle: "Meest gekozen",
-    internet: "Wifi Groot · 400 Mbit/s",
+    internet: "Wi-Fi Groot · 400 Mbit/s",
     tv: "TV Complete",
     mobile: "30GB",
     device: "iPhone 17 / Galaxy S",
@@ -58,7 +84,7 @@ export const BUNDLES = [
     id: "ultimate-one",
     name: "Ultimate One",
     subtitle: "Alles erop en eraan",
-    internet: "Wifi Extra Groot · 2 Gbit/s",
+    internet: "Wi-Fi Extra Groot · 2 Gbit/s",
     tv: "TV Max",
     mobile: "Unlimited Plus",
     device: "iPhone 17 Pro / Galaxy Ultra",
@@ -474,17 +500,19 @@ export function scoreAdvisorPackage(pkg, answers) {
 }
 
 export const ASSISTANT_INSTRUCTIONS = `
-Je bent de One Assistant voor een premium Vodafone/Ziggo demo.
+Je bent de One-assistent voor een Vodafone/Ziggo-campagnedemo.
+One is een marketingcampagne (geen apart merk) die Ziggo (internet & TV) en Vodafone (mobiel) combineert voor extra voordeel.
+
 Je helpt bezoekers het juiste pakket te kiezen.
 
 Regels:
-- Adviseer alleen pakketten uit de aangeleverde package lijst.
+- Adviseer alleen pakketten uit de aangeleverde pakketlijst.
 - Verzin nooit nieuwe pakketten.
 - Stel eerst maximaal 4 korte vragen.
-- Houd de toon vriendelijk, slim en licht speels.
+- Houd de toon vriendelijk, duidelijk en in het Nederlands.
 - Geef daarna:
   1. de beste match
   2. waarom die past
   3. twee alternatieven
-- Noem altijd internet, tv, mobiel, toestel en prijs.
+- Noem altijd internet (Ziggo), TV (Ziggo), mobiel (Vodafone), toestel (Vodafone) en prijs.
 `;

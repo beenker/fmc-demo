@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ASSISTANT_PACKAGES } from "../data/assistantPackages";
+import { PackageFeatureList } from "../components/BrandServiceRows";
 
 const QUESTIONS = [
   "Woon je klein, gemiddeld of ruim?",
@@ -14,7 +15,7 @@ const INITIAL_MESSAGES = [
     role: "assistant",
     type: "text",
     content:
-      "Hoi, ik ben de One Assistant 👋 Ik help je in een paar korte vragen naar het juiste pakket.",
+      "Hoi, ik ben de One-assistent. Ik help je in een paar korte vragen naar het juiste pakket — met Ziggo thuis en Vodafone mobiel.",
   },
   {
     id: "init-2",
@@ -56,11 +57,14 @@ function PackageCard({ pkg, featured }) {
       <div className="font-bold text-lg">{pkg.name}</div>
       <div className="text-sm text-slate-500 mb-2">{pkg.vibe}</div>
 
-      <div className="text-sm space-y-1">
-        <div>📶 {pkg.internet}</div>
-        <div>📺 {pkg.tv}</div>
-        <div>📱 {pkg.mobile}</div>
-      </div>
+      <PackageFeatureList
+        className="mt-1"
+        internet={pkg.internet}
+        tv={pkg.tv}
+        mobile={pkg.mobile}
+        device=""
+        showDevice={false}
+      />
 
       <div className="mt-3">
         <div className="font-bold text-lg">{pkg.priceNow}</div>
@@ -122,7 +126,7 @@ export default function Assistant() {
           id: nextId(),
           role: "assistant",
           type: "text",
-          content: "Top, ik heb genoeg om iets moois voor je te vinden 👇",
+          content: "Top, ik heb genoeg om iets passends voor je te vinden. Zie hieronder.",
         },
         {
           id: nextId(),
@@ -144,9 +148,10 @@ export default function Assistant() {
 
         {/* Header */}
         <div className="bg-orange-500 text-white p-6">
-          <h1 className="text-3xl font-bold">AI Assistant</h1>
+          <h1 className="text-3xl font-bold">One-assistent</h1>
           <p className="text-orange-100 mt-2">
-            Stel een vraag en krijg direct een passend pakket.
+            Stel een vraag en krijg een passend pakket — Ziggo voor internet en
+            TV, Vodafone voor mobiel.
           </p>
         </div>
 
@@ -187,9 +192,9 @@ export default function Assistant() {
             />
             <button
               onClick={sendMessage}
-              className="bg-orange-500 text-white px-4 rounded-xl"
+              className="bg-orange-500 text-white px-4 rounded-xl font-medium"
             >
-              Send
+              Verstuur
             </button>
           </div>
         </div>

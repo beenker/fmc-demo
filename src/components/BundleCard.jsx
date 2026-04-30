@@ -1,4 +1,5 @@
-import { BUNDLE_IMAGE_MAP } from '../data/siteData';
+import { BUNDLE_IMAGE_MAP } from "../data/siteData";
+import { PackageFeatureList } from "./BrandServiceRows";
 
 export default function BundleCard({ bundle }) {
   return (
@@ -20,12 +21,12 @@ export default function BundleCard({ bundle }) {
       <h3 className="text-xl font-bold">{bundle.name}</h3>
       <div className="text-slate-500 text-sm mb-4">{bundle.subtitle}</div>
 
-      <ul className="space-y-2 text-sm">
-        <li>📶 {bundle.internet}</li>
-        <li>📺 {bundle.tv}</li>
-        <li>📱 {bundle.mobile}</li>
-        <li>📦 {bundle.device}</li>
-      </ul>
+      <PackageFeatureList
+        internet={bundle.internet}
+        tv={bundle.tv}
+        mobile={bundle.mobile}
+        device={bundle.device}
+      />
 
       <div className="mt-6">
         <div className="text-3xl font-bold">{bundle.priceNow}</div>

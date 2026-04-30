@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ADVISOR_PACKAGES, BUNDLES, IMAGES } from "../data/siteData";
 import GiftCard from "../components/GiftCard";
+import { PackageFeatureList } from "../components/BrandServiceRows";
 
 const CONFIGURATOR_BUNDLE_MAP = {
   "essential-one": "smart-start",
@@ -32,17 +33,24 @@ export default function Home() {
       <section className="bg-gradient-to-r from-orange-500 to-red-500 text-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 py-14 md:py-16 grid lg:grid-cols-2 gap-10 items-start">
           <div>
-            <div className="inline-flex rounded-full bg-white/15 px-4 py-2 text-sm font-medium mb-5">
-              FMC bundles met maximaal voordeel
-            </div>
             <h1 className="text-4xl md:text-5xl font-bold leading-tight">
-              Het beste van Vodafone en Ziggo, alleen als 2-jarig FMC pakket.
+              One: de marketingcampagne waarin Vodafone en Ziggo samenkomen.
             </h1>
             <p className="mt-5 text-lg text-orange-100 max-w-xl">
-              One biedt bewust alleen 2-jarig FMC aan. Daardoor kunnen we het
-              grootste voordeel geven: topproducten, scherpe bundelprijzen en
-              een keuze tussen 50% korting op je hele rekening in het eerste
-              jaar of een sterk welkomstcadeau.
+              <strong className="font-semibold text-white">One is geen apart merk</strong>{" "}
+              — het is een campagnesite die{" "}
+              <strong className="font-semibold text-white">
+                het beste van Vodafone (mobiel)
+              </strong>{" "}
+              en{" "}
+              <strong className="font-semibold text-white">
+                het beste van Ziggo (internet &amp; TV)
+              </strong>{" "}
+              bundelt. Combineer internet, TV en mobiel twee jaar bij Ziggo en
+              Vodafone via deze campagne, dan krijg je de beste prijzen en
+              kortingen: topproducten, scherpe bundelprijzen en de keuze tussen
+              50% korting op je hele rekening in het eerste jaar of een sterk
+              welkomstcadeau.
             </p>
           </div>
 
@@ -95,12 +103,13 @@ export default function Home() {
                 <div className="text-slate-500 text-sm mt-1">
                   {bundle.subtitle}
                 </div>
-                <ul className="mt-5 space-y-2 text-sm text-slate-700">
-                  <li>📶 {bundle.internet}</li>
-                  <li>📺 {bundle.tv}</li>
-                  <li>📱 {bundle.mobile}</li>
-                  <li>📦 {bundle.device}</li>
-                </ul>
+                <PackageFeatureList
+                  className="mt-5"
+                  internet={bundle.internet}
+                  tv={bundle.tv}
+                  mobile={bundle.mobile}
+                  device={bundle.device}
+                />
                 <div className="mt-5 flex flex-wrap gap-2">
                   <span className="rounded-full bg-orange-100 text-orange-700 px-3 py-1 text-xs font-medium">
                     2 jaar contract
@@ -134,25 +143,28 @@ export default function Home() {
               Kies jouw voordeel
             </h2>
             <p className="mt-4 text-slate-600 leading-7">
-              Omdat FMC alleen als 2-jarig contract wordt aangeboden, kunnen we
-              een stevig voordeel geven. Jij kiest wat het beste bij je past:
-              50% korting op je hele rekening in het eerste jaar, een
-              PlayStation 5 of een Nintendo Switch.
+              Omdat je hier internet, TV en mobiel twee jaar bundelt bij Ziggo
+              en Vodafone, kunnen we een stevig voordeel geven. Jij kiest wat het
+              beste bij je past: 50% korting op je hele rekening in het eerste
+              jaar, een PlayStation 5 of een Nintendo Switch.
             </p>
           </div>
 
           <div className="grid lg:grid-cols-3 gap-6 items-stretch">
             <GiftCard
+              offerKind="discount"
               image={IMAGES.discount}
               title="50% korting"
               value="12 maanden 50% korting op je hele rekening"
             />
             <GiftCard
+              offerKind="gift"
               image={IMAGES.ps5}
               title="PlayStation 5"
               value="Welkomstcadeau · t.w.v. €549"
             />
             <GiftCard
+              offerKind="gift"
               image={IMAGES.switch}
               title="Nintendo Switch"
               value="Welkomstcadeau · t.w.v. €329"
